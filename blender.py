@@ -1,4 +1,5 @@
 import bpy, bmesh, os, random
+from collections import defaultdict
 
 def calculate_y(x1, y1, x2, y2, x):
     y = y1+(y2-y1)*(x-x1)/(x2-x1)
@@ -60,19 +61,13 @@ bm = bmesh.from_edit_mesh(objLine.data)
 #Dots
 points = [(0.0, 0.0, 0.0), (0.0, 5.0, 0.0), (5.0, 5.0, 0.0), (5.0, 0.0, 0.0)]
 
-v1 = bm.verts.new(points[0])
-v2 = bm.verts.new(points[1])
-v3 = bm.verts.new(points[2])
-v4 = bm.verts.new(points[3])
+v = defaultdict(list)
+for i in range(len(points)):
+    vtemp = bm.verts.new(points[i])
+    v[""].append(vtemp)
 
-#for i in range(3):
-#    v.append(bm.verts.new(points[i+1]))
-
-
-v = [v1, v2, v3, v4] 
-
-for i in range(len(v)-1):
-    bm.edges.new((v[i], v[i+1]))
+for i in range(len(v[""])-1):
+    bm.edges.new((v[""][i], v[""][i+1]))
 
 bmesh.update_edit_mesh(objLine.data)
 bpy.ops.object.mode_set(mode='OBJECT')
