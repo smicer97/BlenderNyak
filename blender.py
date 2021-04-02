@@ -1,5 +1,7 @@
 import bpy, bmesh, os, random
 from collections import defaultdict
+from math import atan, pi, radians
+import math
 
 def calculate_y(x1, y1, x2, y2, x):
     y = y1+(y2-y1)*(x-x1)/(x2-x1)
@@ -9,7 +11,88 @@ def calculate_x(x1, y1, x2, y2, y):
     x = x1+(x2-x1)*(y-y1)/(y2-y1)
     return x
 
-def addSzakadas(points):
+def calculateDirection(x1, y1, x2, y2):
+    if (x1 == x2):
+        k = random.randint(0, 1)
+        return 90 + k*180
+    else:
+        direction = atan((y1-y2)/(x1-x2)) * 180 / pi
+        k = random.randint(0, 1)
+        if (direction < 0):
+            return direction + 180 + k*180
+        else:
+            return direction + k*180
+
+def generateXY(x1,y1,x2,y2):
+    if (abs(x1 - x2) > abs(y1 - y2)):
+        #Generate x coordinate of szakadás
+        x = random.uniform(x1, x2)      
+        #Calculate y coordinate from x 
+        y = calculate_y(x1, y1, x2, y2, x)
+    else:
+        #Generate y coordinate of szakadás
+        y = random.uniform(y1, y2)      
+        #Calculate x coordinate from y 
+        x = calculate_x(x1, y1, x2, y2, y)        
+    return x,y        
+
+def drawLines(points, obj):
+    bm = bmesh.from_edit_mesh(obj.data)
+    
+    #Store verts into "v" list
+    v = defaultdict(list)
+    for i in range(len(points)):
+        vtemp = bm.verts.new(points[i])
+        v[""].append(vtemp)
+
+    #Create edges from the the "v" list
+    for i in range(len(v[""])-1):
+        bm.edges.new((v[""][i], v[""][i+1]))    
+         
+    bmesh.update_edit_mesh(obj.data)
+
+def createShape(pointsShape):
+    #Create object for line
+    bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, 0.02), scale=(1, 1, 1))
+    bpy.context.object.name = "Shape"
+    bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.delete(type='VERT')
+    objShape = bpy.data.objects.get("Shape")
+    
+    #Connect points
+    drawLines(pointsShape, objShape)
+    
+    bpy.ops.mesh.select_all(action='SELECT')
+    bpy.ops.mesh.edge_face_add()
+    #Assign material
+    assignMaterial("Surface", bpy.context.object)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    
+def addRandomSzakadas(points, width):
+    #50% chance of szakadás
+    k = random.randint(0, 1)
+    if (k == 1):
+        pointsShape = [(-0.44056040048599243,0.9923735857009888,0.0), (-0.37828749418258667,0.9923735857009888,0.0), (-0.284443736076355,0.9923735857009888,0.0), (-0.1653432846069336,0.9923735857009888,0.0), (-0.027300313115119934,0.9923735857009888,0.0), (0.12337100505828857,0.9923735857009888,0.0), (0.2803564965724945,0.9923735857009888,0.0), (0.43734198808670044,0.9923735857009888,0.0), (0.5880132913589478,0.9923735857009888,0.0), (0.7260562777519226,0.9923735857009888,0.0), (0.845156729221344,0.9923735857009888,0.0), (0.9390004873275757,0.9923735857009888,0.0), (1.0012736320495605,0.9923735857009888,0.0), (0.9885700941085815,0.9593090415000916,0.0), (0.962232232093811,0.9055152535438538,0.0), (0.9248384237289429,0.8352116942405701,0.0), (0.8789671063423157,0.7526178359985352,0.0), (0.8271965980529785,0.6619531512260437,0.0), (0.77210533618927,0.5674371123313904,0.0), (0.7162717580795288,0.47328925132751465,0.0), (0.662274181842804,0.3837289810180664,0.0), (0.6126910448074341,0.3029758036136627,0.0), (0.570100724697113,0.23524919152259827,0.0), (0.5370815992355347,0.18476863205432892,0.0), (0.5162120461463928,0.15575364232063293,0.0), (0.4614240527153015,0.09101337194442749,0.0), (0.40359848737716675,0.026070058345794678,0.0), (0.34289294481277466,-0.038498036563396454,0.0), (0.2794649600982666,-0.10211264342069626,0.0), (0.2134721279144287,-0.1641954928636551,0.0), (0.14507202804088593,-0.2241683304309845,0.0), (0.07442222535610199,-0.28145289421081543,0.0), (0.0016802921891212463,-0.33547088503837585,0.0), (-0.07299619168043137,-0.3856440484523773,0.0), (-0.1494496464729309,-0.43139412999153137,0.0), (-0.22752252221107483,-0.47214287519454956,0.0), (-0.3070572018623352,-0.5073120594024658,0.0), (-0.35896116495132446,-0.5280007719993591,0.0), (-0.40206748247146606,-0.5448148250579834,0.0), (-0.4377216100692749,-0.5581926703453064,0.0), (-0.46726903319358826,-0.5685728192329407,0.0), (-0.4920552372932434,-0.576393723487854,0.0), (-0.5134257078170776,-0.5820938944816589,0.0), (-0.5327259302139282,-0.5861117839813232,0.0), (-0.5513014197349548,-0.5888859033584595,0.0), (-0.5704975724220276,-0.5908547043800354,0.0), (-0.5916599631309509,-0.5924566984176636,0.0), (-0.6161340475082397,-0.5941303968429565,0.0), (-0.6452652215957642,-0.5963141918182373,0.0), (-0.6426652669906616,-0.5318052172660828,0.0), (-0.6353951096534729,-0.4457327425479889,0.0), (-0.6242491602897644,-0.34242069721221924,0.0), (-0.6100218892097473,-0.22619304060935974,0.0), (-0.5935077667236328,-0.10137371718883514,0.0), (-0.5755012035369873,0.027713298797607422,0.0), (-0.5567967295646667,0.1567440629005432,0.0), (-0.5381887555122375,0.2813946008682251,0.0), (-0.5204718112945557,0.39734095335006714,0.0), (-0.5044403076171875,0.5002591609954834,0.0), (-0.49088868498802185,0.5858253240585327,0.0), (-0.4806113839149475,0.6497154235839844,0.0), (-0.4779691994190216,0.6705268025398254,0.0), (-0.47543078660964966,0.6983524560928345,0.0), (-0.4729270935058594,0.7315105199813843,0.0), (-0.47038906812667847,0.7683190703392029,0.0), (-0.46774762868881226,0.8070961236953735,0.0), (-0.46493369340896606,0.846159815788269,0.0), (-0.4618782103061676,0.8838282227516174,0.0), (-0.4585121273994446,0.9184194207191467,0.0), (-0.4547663629055023,0.948251485824585,0.0), (-0.45057186484336853,0.9716424942016602,0.0), (-0.44585955142974854,0.9869105219841003,0.0)]
+        createShape(pointsShape)
+        
+        #Chose 2 points to generate szakadás
+        i = random.randint(0, len(points)-2)
+        
+        #Calculate degree
+        degrees = calculateDirection(points[i][0], points[i][1], points[i+1][0], points[i+1][1])
+        radians = math.radians(degrees)
+        bpy.context.object.rotation_euler[2] = radians
+        
+        #Set size
+        bpy.context.object.scale[0] = width
+        bpy.context.object.scale[1] = width
+
+        #Set coordinate
+        x,y = generateXY(points[i][0],points[i][1],points[i+1][0],points[i+1][1])
+        bpy.context.object.location[0] = x
+        bpy.context.object.location[1] = y
+
+def addSzakadas(points, width):
     #50% chance of szakadás
     k = random.randint(0, 1)
     if (k == 1):
@@ -18,24 +101,15 @@ def addSzakadas(points):
         #Create object for szakadás
         bpy.ops.mesh.primitive_plane_add(size=2, enter_editmode=False, align='WORLD', location=(15, 0, 0.02), scale=(1, 1, 1))
         bpy.context.object.name = "Szakadas"
-        bpy.context.object.scale[1] = 0.2
-        bpy.context.object.scale[0] = 0.2
+        bpy.context.object.scale[1] = width
+        bpy.context.object.scale[0] = width
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
         
         #Assign material
-        assignMaterial("Green", bpy.context.object)
+        assignMaterial("Surface", bpy.context.object)
         
-        if (abs(points[i][0] - points[i+1][0]) > abs(points[i][1] - points[i+1][1])):
-            #Generate x coordinate of szakadás
-            x = random.uniform(points[i][0], points[i+1][0])      
-            #Calculate y coordinate from x 
-            y = calculate_y(points[i][0], points[i][1], points[i+1][0], points[i+1][1], x)
-        else:
-            #Generate y coordinate of szakadás
-            y = random.uniform(points[i][1], points[i+1][1])      
-            #Calculate x coordinate from y 
-            x = calculate_x(points[i][0], points[i][1], points[i+1][0], points[i+1][1], y)
-
+        #Set coordinate
+        x,y = generateXY(points[i][0],points[i][1],points[i+1][0],points[i+1][1])
         bpy.context.object.location[0] = x
         bpy.context.object.location[1] = y
 
@@ -55,7 +129,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\surface.jpg")
+    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\surface.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
     
     #Create image material
@@ -63,9 +137,8 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\line.jpg")
-    mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
-    
+    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\line.png")
+    mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])  
 
 def camera():
     #Modify camera postiton
@@ -82,10 +155,11 @@ def light():
     bpy.data.objects['Light'].select_set(True)
     bpy.ops.object.delete() 
     #Add light
-    bpy.ops.object.light_add(type='SUN', align='WORLD', location=(0, 0, 50), scale=(1, 1, 1))
+    bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+	bpy.context.object.scale[0] = 2
+	bpy.context.object.scale[1] = 2
 
 def surface():
-    global objSurface
     #Add surface
     bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, -0.01), scale=(1, 1, 1))
     bpy.context.object.name = "Surface"
@@ -95,14 +169,15 @@ def surface():
     objSurface = bpy.data.objects.get("Surface")
     
     #Assign material
-    assignMaterial("Green", objSurface)
+    assignMaterial("Surface", objSurface)
     
-def templatePlane():
+def templatePlane(width):
     #Create the template plane objct
     bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(15, 0, 0), scale=(1, 1, 1))
     bpy.context.object.name = "TemplatePlane"
     bpy.context.object.scale[1] = 0.001
-    bpy.context.object.scale[0] = 0.1
+    #Width of the line
+    bpy.context.object.scale[0] = width
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     bpy.ops.object.convert(target='CURVE')
     
@@ -114,19 +189,9 @@ def createLineBetweenPoints(points):
     bpy.ops.mesh.delete(type='VERT')
     objLine = bpy.data.objects.get("Line")
     
-    bm = bmesh.from_edit_mesh(objLine.data)
+    #Connect points
+    drawLines(points, objLine)
     
-    #Store verts into "v" list
-    v = defaultdict(list)
-    for i in range(len(points)):
-        vtemp = bm.verts.new(points[i])
-        v[""].append(vtemp)
-
-    #Create edges from the the "v" list
-    for i in range(len(v[""])-1):
-        bm.edges.new((v[""][i], v[""][i+1]))    
-         
-    bmesh.update_edit_mesh(objLine.data)
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.convert(target='CURVE')
 
@@ -135,7 +200,7 @@ def createLineBetweenPoints(points):
     objLine.data.bevel_object = bpy.data.objects["TemplatePlane"]
 
     #Assign material
-    assignMaterial("Gray", objLine)
+    assignMaterial("Line", objLine)
 
 def render():
     #Render
@@ -153,7 +218,7 @@ def startup():
     createMaterails()
     light()
     surface()
-    templatePlane()
+    templatePlane(0.1)
     camera()
 
 #Comment this line after first run    
@@ -165,6 +230,7 @@ points = [(0.0, 0.0, 0.0), (0.0, -5.0, 0.0), (-5.0, -5.0, 0.0), (-5.0, 0.0, 0.0)
 createLineBetweenPoints(points)
 
 #Add "szakadas"
-addSzakadas(points)
+addSzakadas(points, 0.1)
+addRandomSzakadas(points, 0.1)
 
 render()
