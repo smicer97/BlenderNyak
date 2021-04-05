@@ -392,5 +392,5 @@ for PictureNumber in range(num_of_pictures):
     
     
     
-    #Nekem lefagyott a gép, amikor használni próbáltam
+    
     deleteEverything()
