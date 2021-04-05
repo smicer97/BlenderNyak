@@ -150,7 +150,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\surface.png")
+    texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\surface.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
     
     #Create image material
@@ -158,7 +158,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\line.png")
+    texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\line.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])  
 
 def camera():
@@ -232,7 +232,7 @@ def createLineBetweenPoints(points):
 
 def render():
     #Render
-    imagePath = "C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\Dataset\\"
+    imagePath = "C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\"
     #bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0, 0, 0, 1)
     if os.path.exists(imagePath):
         bpy.context.scene.render.filepath = imagePath+'model'+str(PictureNumber)+'.jpg'
@@ -327,17 +327,23 @@ def deleteCube():
             bpy.ops.object.delete()
             
 def deleteEverything():
-    bpy.ops.object.select_all(action='SELECT')
-    bpy.data.objects['Camera'].select_set(False)
-    bpy.data.objects['Light'].select_set(False)
-    for o in bpy.context.scene.objects:
-        if (o.name != "Camera") or (o.name != "Lights"):
-            bpy.ops.object.delete()
+    ob1 = bpy.context.scene.objects["Camera"]
+    ob2 = bpy.context.scene.objects["Light"]       
+    bpy.ops.object.select_all(action='SELECT') 
+    bpy.context.view_layer.objects.active = ob1   
+    ob1.select_set(False)
+    bpy.context.view_layer.objects.active = ob2   
+    ob2.select_set(False)
+
+    bpy.ops.object.delete(use_global=False, confirm=False)
+
+
+
  
 #FONTOS! az n db kirenderelt kép sorszáma 0-tól kezdődik és (n-1)-ig megy
 
 #renderelni kívánt képek darabszáma
-num_of_pictures = 1
+num_of_pictures = 3
 
 #Dots
 points = [(0.0, 0.0, 0.0), (0.0, -5.0, 0.0), (-5.0, -5.0, 0.0), (-5.0, 0.0, 0.0)]
@@ -356,11 +362,13 @@ y_error = -0.15
 #furat eltömődések számának megadása
 num_of_FuratEltomodes = 2
 
-#num_of_FuratEltomodes értéknek megfelelő számú furat random kiválasztása, ahova a furat eltömődést tesszük
-PosTemp = []
-NumTemp = 0
+
 
 for PictureNumber in range(num_of_pictures):
+    
+    #num_of_FuratEltomodes értéknek megfelelő számú furat random kiválasztása, ahova a furat eltömődést tesszük
+    PosTemp = []
+    NumTemp = 0
                 
     if (PictureNumber == 0):
         deleteCube()
@@ -382,5 +390,7 @@ for PictureNumber in range(num_of_pictures):
 
     render()
     
+    
+    
     #Nekem lefagyott a gép, amikor használni próbáltam
-    #deleteEverything()
+    deleteEverything()
