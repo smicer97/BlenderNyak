@@ -6,7 +6,7 @@ import math
 #FONTOS! az n db kirenderelt kép sorszáma 0-tól kezdődik és (n-1)-ig megy
 
 #renderelni kívánt képek darabszáma
-num_of_pictures = 2
+num_of_pictures = 1
 
 for PictureNumber in range(num_of_pictures):
  
@@ -175,7 +175,8 @@ for PictureNumber in range(num_of_pictures):
         mat.use_nodes = True
         bsdf = mat.node_tree.nodes["Principled BSDF"]
         texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-        texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\surface.png")
+        #texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\surface.png")
+        texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\surface.png")
         mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
         
         #Create image material
@@ -183,7 +184,8 @@ for PictureNumber in range(num_of_pictures):
         mat.use_nodes = True
         bsdf = mat.node_tree.nodes["Principled BSDF"]
         texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-        texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\line.png")
+        #texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\line.png")
+        texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\line.png")
         mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])  
 
     def camera():
@@ -201,9 +203,10 @@ for PictureNumber in range(num_of_pictures):
         bpy.data.objects['Light'].select_set(True)
         bpy.ops.object.delete() 
         #Add light
-        bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 0), scale=(1, 1, 1))
+        bpy.ops.object.light_add(type='AREA', align='WORLD', location=(0, 0, 1.5), scale=(1, 1, 1))
         bpy.context.object.scale[0] = 20
         bpy.context.object.scale[1] = 20
+        bpy.context.object.data.energy = 340
 
     def surface():
         #Add surface
@@ -240,6 +243,8 @@ for PictureNumber in range(num_of_pictures):
         
         bpy.ops.object.mode_set(mode='OBJECT')
         bpy.ops.object.convert(target='CURVE')
+		
+		bpy.context.object.data.dimensions = '2D'
 
         #Apply the template on line object
         objLine.data.bevel_mode = 'OBJECT'
@@ -250,7 +255,8 @@ for PictureNumber in range(num_of_pictures):
 
     def render():
         #Render
-        imagePath = "C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\"
+        #imagePath = "C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\"
+        imagePath = "C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\Dataset\\"
         bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0, 0, 0, 1)
         if os.path.exists(imagePath):
             bpy.context.scene.render.filepath = imagePath+'model'+str(PictureNumber)+'.jpg'
