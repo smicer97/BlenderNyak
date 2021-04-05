@@ -6,7 +6,7 @@ import math
 #FONTOS! az n db kirenderelt kép sorszáma 0-tól kezdődik és (n-1)-ig megy
 
 #renderelni kívánt képek darabszáma
-num_of_pictures = 2
+num_of_pictures = 1
 
 for PictureNumber in range(num_of_pictures):
  
@@ -259,137 +259,99 @@ for PictureNumber in range(num_of_pictures):
             bpy.ops.render.render(write_still=True)
         else:
             print("Wrong path")   
+    
+    def createForrszem():
+        #Create the Forrszem object (nem csak egy, hanem az összes forrszem generálása)
+        for j in range (len(x)):
+            bpy.ops.mesh.primitive_cylinder_add(radius=1.5, depth=0.01, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0), scale=(1, 1, 1))
+            bpy.context.object.name = "Forrszem"+str(j)
+            bpy.context.object.scale[1] = 1
+            bpy.context.object.scale[0] = 1
 
-    def createHolesToSurface():
-        #Create holes in the Surface object
-        bpy.ops.object.editmode_toggle()
-        bpy.ops.mesh.delete(type='ONLY_FACE')
-        for i in range (len(x)):
-            bpy.ops.mesh.primitive_circle_add(radius=1, enter_editmode=False, align='WORLD', location=(x[i] + x_error, y[i] + y_error, 0), scale=(1, 1, 1))
-        bpy.ops.object.mode_set(mode='EDIT')
-        bpy.context.tool_settings.mesh_select_mode = (False, True, False)
-        bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.mesh.fill()
-        bpy.ops.object.mode_set(mode='OBJECT')        
-        
+        Forrszem_array = ["Forrszem0"]
+
+        for k in range(1, len(x)):
+            Forrszem_array.append("Forrszem"+str(k))
+            
+        bpy.ops.object.select_all(action='DESELECT')
+
+        for o in bpy.data.objects:
+            if o.name in Forrszem_array:
+                o.select_set(True)
+
+        bpy.ops.object.join()
+        bpy.context.object.name = "Forrszem"
+        objForrszem = bpy.data.objects.get("Forrszem")
+    
+    def createHoles():
+        #Create holes object
+        for l in range (len(x)):
+            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.01, enter_editmode=False, align='WORLD', location=(x[l] + x_error, y[l] + y_error, 2), scale=(1, 1, 1))
+            bpy.context.object.name = "Holes"+str(l)
+            bpy.context.object.scale[1] = 1
+            bpy.context.object.scale[0] = 1
+
+        Holes_array = ["Holes0"]
+
+        for m in range(1, len(x)):
+            Holes_array.append("Holes"+str(m))
+            
+        bpy.ops.object.select_all(action='DESELECT')
+
+        for p in bpy.data.objects:
+            if p.name in Holes_array:
+                p.select_set(True)
+
+        bpy.ops.object.join()
+        bpy.context.object.name = "Holes"
+        objHoles = bpy.data.objects.get("Holes")
+    
+    def createFuratEltomodes():
+        #furat eltömődés létrehozása
+        if(num_of_FuratEltomodes != 0):
+
+            #num_of_FuratEltomodes értéknek megfelelő számú furat random kiválasztása, ahova a furat eltömődést tesszük
+            getFuratEltomodesPos()
+
+            #create FuratEltomodes object
+            for l in range (num_of_FuratEltomodes):
+                bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.01, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 4), scale=(1, 1, 1))
+                bpy.context.object.name = "FuratEltomodes"+str(l)
+                bpy.context.object.scale[1] = 1
+                bpy.context.object.scale[0] = 1
+
+            FuratEltomodes_array = ["FuratEltomodes0"]
+
+            for m in range(1, len(x)):
+                FuratEltomodes_array.append("FuratEltomodes"+str(m))
+                
+            bpy.ops.object.select_all(action='DESELECT')
+
+            for p in bpy.data.objects:
+                if p.name in FuratEltomodes_array:
+                    p.select_set(True)
+
+            bpy.ops.object.join()
+            bpy.context.object.name = "FuratEltomodes"
+            objFuratEltomodes = bpy.data.objects.get("FuratEltomodes")
+    
     def startup():
         if (PictureNumber == 0):
             createMaterails()
             light()
         surface()
-        createHolesToSurface()
         templatePlane(0.1)
         if (PictureNumber == 0):
             camera()
+        createForrszem()
+        createHoles()
+        createFuratEltomodes()
         
     startup()
     
     createLineBetweenPoints(points)
 
-    #Create the Forrszem object (nem csak egy, hanem az összes forrszem generálása)
-    for j in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=1.5, depth=0.01, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0), scale=(1, 1, 1))
-        bpy.context.object.name = "Forrszem"+str(j)
-        bpy.context.object.scale[1] = 1
-        bpy.context.object.scale[0] = 1
-
-    Forrszem_array = ["Forrszem0"]
-
-    for k in range(1, len(x)):
-        Forrszem_array.append("Forrszem"+str(k))
-        
-    bpy.ops.object.select_all(action='DESELECT')
-
-    for o in bpy.data.objects:
-        if o.name in Forrszem_array:
-            o.select_set(True)
-
-    bpy.ops.object.join()
-    bpy.context.object.name = "Forrszem"
-    objForrszem = bpy.data.objects.get("Forrszem")
-
-    #Create lukasztó Cylinders object
-    for l in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=4, enter_editmode=False, align='WORLD', location=(x[l] + x_error, y[l] + y_error, 0), scale=(1, 1, 1))
-        bpy.context.object.name = "LukasztoCylinder"+str(l)
-        bpy.context.object.scale[1] = 1
-        bpy.context.object.scale[0] = 1
-
-    LukasztoCylinder_array = ["LukasztoCylinder0"]
-
-    for m in range(1, len(x)):
-        LukasztoCylinder_array.append("LukasztoCylinder"+str(m))
-        
-    bpy.ops.object.select_all(action='DESELECT')
-
-    for p in bpy.data.objects:
-        if p.name in LukasztoCylinder_array:
-            p.select_set(True)
-
-    bpy.ops.object.join()
-    bpy.context.object.name = "LukasztoCylinder"
-    objLukasztoCylinder = bpy.data.objects.get("LukasztoCylinder")
-
-    #cutting holes into the Forrszem
-        #Forrszem kijelölés
-    ob = bpy.context.scene.objects["Forrszem"]       
-    bpy.ops.object.select_all(action='DESELECT') 
-    bpy.context.view_layer.objects.active = ob   
-    ob.select_set(True)                          
-        #Forrszemből LukasztoCylinder kivonása
-    bpy.ops.object.modifier_add(type='BOOLEAN')
-    bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["LukasztoCylinder"]
-    bpy.ops.object.modifier_apply(modifier="Boolean")
-
-    #cutting holes into the Line
-        #Line kijelölés
-    ob = bpy.context.scene.objects["Line"]       
-    bpy.ops.object.select_all(action='DESELECT') 
-    bpy.context.view_layer.objects.active = ob   
-    ob.select_set(True)
-        #Line konvertálása mesh-sé
-    bpy.ops.object.convert(target='MESH')                          
-        #Lineból LukasztoCylinder kivonása
-    bpy.ops.object.modifier_add(type='BOOLEAN')
-    bpy.context.object.modifiers["Boolean"].object = bpy.data.objects["LukasztoCylinder"]
-    bpy.ops.object.modifier_apply(modifier="Boolean")
-
-    #LukasztoCylinder törlése
-    ob = bpy.context.scene.objects["LukasztoCylinder"]       
-    bpy.ops.object.select_all(action='DESELECT') 
-    bpy.context.view_layer.objects.active = ob   
-    ob.select_set(True)
-
-    bpy.ops.object.delete(use_global=False, confirm=False)
-
-    #furat eltömődés létrehozása
-    if(num_of_FuratEltomodes != 0):
-
-        #num_of_FuratEltomodes értéknek megfelelő számú furat random kiválasztása, ahova a furat eltömődést tesszük
-        getFuratEltomodesPos()
-
-        #create FuratEltomodes object
-        for l in range (num_of_FuratEltomodes):
-            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.01, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 0), scale=(1, 1, 1))
-            bpy.context.object.name = "FuratEltomodes"+str(l)
-            bpy.context.object.scale[1] = 1
-            bpy.context.object.scale[0] = 1
-
-        FuratEltomodes_array = ["FuratEltomodes0"]
-
-        for m in range(1, len(x)):
-            FuratEltomodes_array.append("FuratEltomodes"+str(m))
-            
-        bpy.ops.object.select_all(action='DESELECT')
-
-        for p in bpy.data.objects:
-            if p.name in FuratEltomodes_array:
-                p.select_set(True)
-
-        bpy.ops.object.join()
-        bpy.context.object.name = "FuratEltomodes"
-        objFuratEltomodes = bpy.data.objects.get("FuratEltomodes")
-
+    
     assignMaterial("Line", objForrszem)
     if(num_of_FuratEltomodes != 0):
         assignMaterial("Surface", objFuratEltomodes)
