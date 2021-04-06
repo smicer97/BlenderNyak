@@ -187,7 +187,7 @@ def light():
 
 def surface():
     #Add surface
-    bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, -0.01), scale=(1, 1, 1))
+    bpy.ops.mesh.primitive_plane_add(enter_editmode=False, align='WORLD', location=(0, 0, -0.001), scale=(1, 1, 1))
     bpy.context.object.name = "Surface"
     bpy.context.object.scale[1] = 10
     bpy.context.object.scale[0] = 10
@@ -245,7 +245,7 @@ def render():
 def createForrszem():
     #Create the Forrszem object (nem csak egy, hanem az összes forrszem generálása)
     for j in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=1.5, depth=0.01, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_cylinder_add(radius=1.5, depth=0.001, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0.0015), scale=(1, 1, 1))
         bpy.context.object.name = "Forrszem"+str(j)
         bpy.context.object.scale[1] = 1
         bpy.context.object.scale[0] = 1
@@ -269,7 +269,7 @@ def createForrszem():
 def createHoles():
     #Create holes object
     for l in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.01, enter_editmode=False, align='WORLD', location=(x[l] + x_error, y[l] + y_error, 2), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.001, enter_editmode=False, align='WORLD', location=(x[l] + x_error, y[l] + y_error, 0.0025), scale=(1, 1, 1))
         bpy.context.object.name = "Holes"+str(l)
         bpy.context.object.scale[1] = 1
         bpy.context.object.scale[0] = 1
@@ -298,7 +298,7 @@ def createFuratEltomodes():
 
         #create FuratEltomodes object
         for l in range (num_of_FuratEltomodes):
-            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.01, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 4), scale=(1, 1, 1))
+            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.001, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 0.0035), scale=(1, 1, 1))
             bpy.context.object.name = "FuratEltomodes"+str(l)
             bpy.context.object.scale[1] = 1
             bpy.context.object.scale[0] = 1
@@ -343,7 +343,7 @@ def deleteEverything():
 #FONTOS! az n db kirenderelt kép sorszáma 0-tól kezdődik és (n-1)-ig megy
 
 #renderelni kívánt képek darabszáma
-num_of_pictures = 3
+num_of_pictures = 5
 
 #Dots
 points = [(0.0, 0.0, 0.0), (0.0, -5.0, 0.0), (-5.0, -5.0, 0.0), (-5.0, 0.0, 0.0)]
@@ -389,8 +389,5 @@ for PictureNumber in range(num_of_pictures):
     addRandomSzakadas(points, 0.1)
 
     render()
-    
-    
-    
     
     deleteEverything()
