@@ -169,7 +169,7 @@ def camera():
     objCamera.rotation_euler[2] = 0
     objCamera.location[0] = 0
     objCamera.location[1] = 0
-    objCamera.location[2] = 25
+    objCamera.location[2] = 40
 
 def light():
     #Delete default light
@@ -245,7 +245,7 @@ def render():
 def createForrszem():
     #Create the Forrszem object (nem csak egy, hanem az összes forrszem generálása)
     for j in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=1.5, depth=0.001, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0.0015), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.75, depth=0.001, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0.0015), scale=(1, 1, 1))
         bpy.context.object.name = "Forrszem"+str(j)
         bpy.context.object.scale[1] = 1
         bpy.context.object.scale[0] = 1
@@ -269,7 +269,7 @@ def createForrszem():
 def createHoles():
     #Create holes object
     for l in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.001, enter_editmode=False, align='WORLD', location=(x[l] + x_error, y[l] + y_error, 0.0025), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=0.001, enter_editmode=False, align='WORLD', location=(x[l] + x_error, y[l] + y_error, 0.0025), scale=(1, 1, 1))
         bpy.context.object.name = "Holes"+str(l)
         bpy.context.object.scale[1] = 1
         bpy.context.object.scale[0] = 1
@@ -298,7 +298,7 @@ def createFuratEltomodes():
 
         #create FuratEltomodes object
         for l in range (num_of_FuratEltomodes):
-            bpy.ops.mesh.primitive_cylinder_add(radius=1, depth=0.001, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 0.0035), scale=(1, 1, 1))
+            bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=0.001, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 0.0035), scale=(1, 1, 1))
             bpy.context.object.name = "FuratEltomodes"+str(l)
             bpy.context.object.scale[1] = 1
             bpy.context.object.scale[0] = 1
@@ -342,27 +342,21 @@ def deleteEverything():
  
 #FONTOS! az n db kirenderelt kép sorszáma 0-tól kezdődik és (n-1)-ig megy
 
+#BEMENETI PARAMÉTER:
 #renderelni kívánt képek darabszáma
-num_of_pictures = 5
+num_of_pictures = 3
 
-#Dots
-points = [(0.0, 0.0, 0.0), (0.0, -5.0, 0.0), (-5.0, -5.0, 0.0), (-5.0, 0.0, 0.0)]
-
-#furat középpontok megadása
-# x1, x2, x3 ...
-# y1, y2, y3 ...
-x = [6, 2, -7]
-y = [5, -5, -2]
-
+#BEMENETI PARAMÉTER:
 #furat-forrszem pozíció hibához az x és y irányú középpont eltérés megadása (mindegyik
 #ezekkel az értékekkel fog eltérni
 x_error = -0.25
 y_error = -0.15
 
-#furat eltömődések számának megadása
-num_of_FuratEltomodes = 2
-
-
+#BEMENETI PARAMÉTEREK:
+#pointGenerator-höz kezdeti változók
+size = 2 * 10
+width = 0.2
+maxLines = 3
 
 for PictureNumber in range(num_of_pictures):
     
@@ -376,18 +370,80 @@ for PictureNumber in range(num_of_pictures):
         light()
         camera()
     surface()
-    templatePlane(0.1)
+    templatePlane(width)
+    
+    #furat középpontokhoz inicializálás
+    x = []
+    y = []
+    
+    #pointGenerator----------------------------------------------------------------------
+    numOfLines = random.randint(1, maxLines)
+
+    #Determine the difference of the points according to num of lines
+    pointDiff = size / (2 * numOfLines)
+
+    for i in range(numOfLines):
+        #generate points
         
+        # x0 can be the following, if size is 20
+        # 3 lines: -6.66, 0, 6.66
+        # 2 lines: -5, 5
+        # 1 lines: 0 
+        #Scale i to 1,3,5
+        scaleFactor = (i * 2 + 1) 
+        x0 = pointDiff * scaleFactor - size/2
+        y0 = -size/2 + 1 + random.uniform(0, 16) #a 16 lehet bármi
+        
+        maxSpace = pointDiff - width
+        y1Max = size/2 - 1 - maxSpace
+        
+        x1 = x0
+        y1 = random.uniform(y0 + 2, y1Max)
+        
+        #Branch direction
+        # -1 left, 0 straight, 1 right
+        direction = random.randint(-1, 1)
+        
+        if (direction == 0):
+            x2 = x1
+            y2 = size/2
+            #Put into points array
+            points = [(x0, y0, 0.0), (x1, y1, 0.0), (x2, y2, 0.0)]
+        else:
+            maxBranch = maxSpace * math.sqrt(2)
+            #Generate length of branch
+            branchLength = random.uniform(math.sqrt(2), maxBranch)
+            x2 = x1 + direction * branchLength / math.sqrt(2)
+            y2 = y1 + branchLength / math.sqrt(2)  
+                  
+            x3 = x2
+            y3 = size/2
+            #Put into points array
+            points = [(x0, y0, 0.0), (x1, y1, 0.0), (x2, y2, 0.0), (x3, y3, 0.0)]
+        
+        createLineBetweenPoints(points)
+
+        #Add "szakadas"
+        addSzakadas(points, width)
+        addRandomSzakadas(points, width)
+        
+        print(points)
+        
+        #points tömbből a furat középpontok kinyerése
+        x.append(x0)
+        y.append(y0)
+        
+        #call line and furat functions with point array
+    #pointGenerator end--------------------------------------------------------------------
+    
     createForrszem()
     createHoles()
+    
+    #furat eltömődések számának generálása
+    num_of_FuratEltomodes = random.randint(0, maxLines)
+    
     createFuratEltomodes()
     
-    createLineBetweenPoints(points)
-
-    #Add "szakadas"
-    addSzakadas(points, 0.1)
-    addRandomSzakadas(points, 0.1)
-
     render()
     
     deleteEverything()
