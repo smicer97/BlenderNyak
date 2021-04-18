@@ -20,7 +20,16 @@ def getFuratEltomodesPos():
             PosTemp.append(NumTemp)
             valtozo = valtozo + 1
 
-
+def convertCoordinate2Pixel(X,Y,size,imageMax):
+    scaleFactor = imageMax / size
+    offset = imageMax / 2
+    x = int(scaleFactor * X + offset)
+    y = int(-scaleFactor * Y + offset)    
+    if (x > imageMax):
+        x = imageMax        
+    if (y > imageMax):
+        y = imageMax        
+    return x,y
 
 def calculate_y(x1, y1, x2, y2, x):
     y = y1+(y2-y1)*(x-x1)/(x2-x1)
@@ -76,7 +85,7 @@ def createShape(pointsShape):
     bpy.context.object.name = "Shape"
     bpy.ops.object.mode_set(mode='EDIT')
     bpy.ops.mesh.delete(type='VERT')
-    objShape = bpy.data.objects.get("Shape")
+    objShape = bpy.context.object
     
     #Connect points
     drawLines(pointsShape, objShape)
@@ -87,7 +96,7 @@ def createShape(pointsShape):
     assignMaterial("Surface", bpy.context.object)
     bpy.ops.object.mode_set(mode='OBJECT')
     
-def addRandomSzakadas(points, width):
+def addRandomSzakadas(points, width, forrszemRadius):
     #50% chance of szakadás
     k = random.randint(0, 1)
     if (k == 1):
@@ -107,11 +116,15 @@ def addRandomSzakadas(points, width):
         bpy.context.object.scale[1] = width
 
         #Set coordinate
-        x,y = generateXY(points[i][0],points[i][1],points[i+1][0],points[i+1][1])
+        #If szakadás is next to the furat, y0 has to be greater
+        if (i ==0):
+            x,y = generateXY(points[i][0],points[i][1] + forrszemRadius + width/2,points[i+1][0],points[i+1][1])
+        else:
+            x,y = generateXY(points[i][0],points[i][1],points[i+1][0],points[i+1][1])
         bpy.context.object.location[0] = x
         bpy.context.object.location[1] = y
 
-def addSzakadas(points, width):
+def addSzakadas(points, width, forrszemRadius):
     #50% chance of szakadás
     k = random.randint(0, 1)
     if (k == 1):
@@ -124,11 +137,20 @@ def addSzakadas(points, width):
         bpy.context.object.scale[0] = width
         bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
         
+        #Calculate degree
+        degrees = calculateDirection(points[i][0], points[i][1], points[i+1][0], points[i+1][1])
+        radians = math.radians(degrees)
+        bpy.context.object.rotation_euler[2] = radians
+        
         #Assign material
         assignMaterial("Surface", bpy.context.object)
         
         #Set coordinate
-        x,y = generateXY(points[i][0],points[i][1],points[i+1][0],points[i+1][1])
+        #If szakadás is next to the furat, y0 has to be greater
+        if (i ==0):
+            x,y = generateXY(points[i][0],points[i][1] + forrszemRadius + width/2,points[i+1][0],points[i+1][1])
+        else:
+            x,y = generateXY(points[i][0],points[i][1],points[i+1][0],points[i+1][1])
         bpy.context.object.location[0] = x
         bpy.context.object.location[1] = y
 
@@ -150,7 +172,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\surface.png")
+    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\surface.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
     
     #Create image material
@@ -158,7 +180,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\line.png")
+    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\line.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])  
 
 def camera():
@@ -169,10 +191,10 @@ def camera():
     objCamera.rotation_euler[2] = 0
     objCamera.location[0] = 0
     objCamera.location[1] = 0
-    objCamera.location[2] = 40
+    objCamera.location[2] = 27.778
 
 def light():
-    #Delete default light
+    #Add light
     bpy.data.objects['Light'].data.type = 'AREA'
     bpy.data.objects['Light'].location[0] = 0
     bpy.data.objects['Light'].location[1] = 0
@@ -183,7 +205,6 @@ def light():
     bpy.data.objects['Light'].scale[0] = 200
     bpy.data.objects['Light'].scale[1] = 200
     bpy.data.objects['Light'].data.energy = 1000
-    #Add light
 
 def surface():
     #Add surface
@@ -230,22 +251,22 @@ def createLineBetweenPoints(points):
     #Assign material
     assignMaterial("Line", objLine)
 
-def render():
+def render(imageMax):
     #Render
-    imagePath = "C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\"
+    imagePath = "C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\Dataset\\"
     #bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0, 0, 0, 1)
     if os.path.exists(imagePath):
         bpy.context.scene.render.filepath = imagePath+'model'+str(PictureNumber)+'.jpg'
-        bpy.context.scene.render.resolution_x = 1080
-        bpy.context.scene.render.resolution_y = 1080
+        bpy.context.scene.render.resolution_x = imageMax
+        bpy.context.scene.render.resolution_y = imageMax
         bpy.ops.render.render(write_still=True)
     else:
         print("Wrong path")   
 
-def createForrszem():
+def createForrszem(forrszemRadius):
     #Create the Forrszem object (nem csak egy, hanem az összes forrszem generálása)
     for j in range (len(x)):
-        bpy.ops.mesh.primitive_cylinder_add(radius=0.75, depth=0.001, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0.0015), scale=(1, 1, 1))
+        bpy.ops.mesh.primitive_cylinder_add(radius=forrszemRadius, depth=0.001, enter_editmode=False, align='WORLD', location=(x[j], y[j], 0.0015), scale=(1, 1, 1))
         bpy.context.object.name = "Forrszem"+str(j)
         bpy.context.object.scale[1] = 1
         bpy.context.object.scale[0] = 1
@@ -292,10 +313,8 @@ def createHoles():
 def createFuratEltomodes():
     #furat eltömődés létrehozása
     if(num_of_FuratEltomodes != 0):
-
         #num_of_FuratEltomodes értéknek megfelelő számú furat random kiválasztása, ahova a furat eltömődést tesszük
         getFuratEltomodesPos()
-
         #create FuratEltomodes object
         for l in range (num_of_FuratEltomodes):
             bpy.ops.mesh.primitive_cylinder_add(radius=0.5, depth=0.001, enter_editmode=False, align='WORLD', location=(x_error + x[PosTemp[l]], y_error + y[PosTemp[l]], 0.0035), scale=(1, 1, 1))
@@ -304,12 +323,10 @@ def createFuratEltomodes():
             bpy.context.object.scale[0] = 1
 
         FuratEltomodes_array = ["FuratEltomodes0"]
-
         for m in range(1, len(x)):
             FuratEltomodes_array.append("FuratEltomodes"+str(m))
             
         bpy.ops.object.select_all(action='DESELECT')
-
         for p in bpy.data.objects:
             if p.name in FuratEltomodes_array:
                 p.select_set(True)
@@ -338,13 +355,11 @@ def deleteEverything():
     bpy.ops.object.delete(use_global=False, confirm=False)
 
 
-
- 
 #FONTOS! az n db kirenderelt kép sorszáma 0-tól kezdődik és (n-1)-ig megy
 
 #BEMENETI PARAMÉTER:
 #renderelni kívánt képek darabszáma
-num_of_pictures = 3
+num_of_pictures = 50
 
 #BEMENETI PARAMÉTER:
 #furat-forrszem pozíció hibához az x és y irányú középpont eltérés megadása (mindegyik
@@ -356,7 +371,10 @@ y_error = -0.15
 #pointGenerator-höz kezdeti változók
 size = 2 * 10
 width = 0.2
-maxLines = 3
+maxLines = 2
+forrszemRadius = 0.75
+
+imageMaxSize = 1080
 
 for PictureNumber in range(num_of_pictures):
     
@@ -372,6 +390,10 @@ for PictureNumber in range(num_of_pictures):
     surface()
     templatePlane(width)
     
+    #Rotate camera
+    rotate = PictureNumber % 4
+    bpy.data.objects['Camera'].rotation_euler[2] = rotate * 1.5708
+    
     #furat középpontokhoz inicializálás
     x = []
     y = []
@@ -381,7 +403,7 @@ for PictureNumber in range(num_of_pictures):
 
     #Determine the difference of the points according to num of lines
     pointDiff = size / (2 * numOfLines)
-
+    
     for i in range(numOfLines):
         #generate points
         
@@ -391,14 +413,17 @@ for PictureNumber in range(num_of_pictures):
         # 1 lines: 0 
         #Scale i to 1,3,5
         scaleFactor = (i * 2 + 1) 
-        x0 = pointDiff * scaleFactor - size/2
-        y0 = -size/2 + 1 + random.uniform(0, 16) #a 16 lehet bármi
-        
         maxSpace = pointDiff - width
-        y1Max = size/2 - 1 - maxSpace
         
+        #5 is a magic number
+        y0Max = size - 1 - maxSpace - forrszemRadius - 5 * width
+        y1Max = size - 1 - maxSpace
+        
+        x0 = pointDiff * scaleFactor - size/2
+        y0 = random.uniform(1, y0Max) -	size/2
+            
         x1 = x0
-        y1 = random.uniform(y0 + 2, y1Max)
+        y1 = random.uniform(y0 + forrszemRadius + width + size/2, y1Max) - size/2
         
         #Branch direction
         # -1 left, 0 straight, 1 right
@@ -422,12 +447,10 @@ for PictureNumber in range(num_of_pictures):
             points = [(x0, y0, 0.0), (x1, y1, 0.0), (x2, y2, 0.0), (x3, y3, 0.0)]
         
         createLineBetweenPoints(points)
-
-        #Add "szakadas"
-        addSzakadas(points, width)
-        addRandomSzakadas(points, width)
         
-        print(points)
+        #Add "szakadas"
+        addSzakadas(points, width, forrszemRadius)
+        addRandomSzakadas(points, width, forrszemRadius)
         
         #points tömbből a furat középpontok kinyerése
         x.append(x0)
@@ -436,14 +459,14 @@ for PictureNumber in range(num_of_pictures):
         #call line and furat functions with point array
     #pointGenerator end--------------------------------------------------------------------
     
-    createForrszem()
+    createForrszem(forrszemRadius)
     createHoles()
     
     #furat eltömődések számának generálása
-    num_of_FuratEltomodes = random.randint(0, maxLines)
+    num_of_FuratEltomodes = random.randint(0, numOfLines)
     
     createFuratEltomodes()
-    
-    render()
+
+    render(imageMaxSize)
     
     deleteEverything()
