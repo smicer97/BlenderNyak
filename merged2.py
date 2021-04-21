@@ -150,7 +150,7 @@ def addRandomSzakadas(points, width, forrszemRadius):
         
         #Write to .txt
         writeObjectCoordinateToTxt(x,y,size,imageMaxSize,width,0)
-
+        
 def addSzakadas(points, width, forrszemRadius):
     #50% chance of szakadás
     k = random.randint(0, 1)
@@ -184,7 +184,7 @@ def addSzakadas(points, width, forrszemRadius):
         
         #Write to .txt
         writeObjectCoordinateToTxt(x,y,size,imageMaxSize,width,0)
-
+        
 def assignMaterial(color, obj):
     mat = bpy.data.materials.get(color)
     obj.active_material = mat
@@ -203,7 +203,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\surface.png")
+    texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\surface.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])
     
     #Create image material
@@ -211,7 +211,7 @@ def createMaterails():
     mat.use_nodes = True
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     texImage = mat.node_tree.nodes.new('ShaderNodeTexImage')
-    texImage.image = bpy.data.images.load("C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\BlenderNyak\\line.png")
+    texImage.image = bpy.data.images.load("C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\line.png")
     mat.node_tree.links.new(bsdf.inputs['Base Color'], texImage.outputs['Color'])  
 
 def camera():
@@ -284,7 +284,7 @@ def createLineBetweenPoints(points):
 
 def render(imageMax):
     #Render
-    imagePath = "C:\\Users\\Gergő\\Desktop\\BME\\Msc\\3. félév\\Diploma\\Dataset\\"
+    imagePath = "C:\\Users\\Roland\\Desktop\\BME mechatronika MSc\\Első félév - 2020-2021-2 (tavasz)\\Projektfeladat\\"
     #bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[0].default_value = (0, 0, 0, 1)
     if os.path.exists(imagePath):
         bpy.context.scene.render.filepath = imagePath+'model'+str(PictureNumber)+'.jpg'
@@ -451,12 +451,6 @@ def pointGenerator():
 #renderelni kívánt képek darabszáma
 num_of_pictures = 10
 
-#BEMENETI PARAMÉTER:
-#furat-forrszem pozíció hibához az x és y irányú középpont eltérés megadása (mindegyik
-#ezekkel az értékekkel fog eltérni
-x_error = -0.25
-y_error = -0.15
-
 #BEMENETI PARAMÉTEREK:
 #pointGenerator-höz kezdeti változók
 maxLines = 6
@@ -473,6 +467,11 @@ imageMaxSize = 1080
 
 #Main for loop
 for PictureNumber in range(num_of_pictures):
+    
+    #furat-forrszem pozíció hibához az x és y irányú középpont eltérés (egy kicsit ki tud menni a forrszemből a furat) (egy képen mindegyik ugyanúgy tér el, de képenként más)
+    x_error = random.uniform(0, forrszemRadius-holeRadius)
+    y_error = random.uniform(0, forrszemRadius-holeRadius)
+    
     #num_of_FuratEltomodes értéknek megfelelő számú furat random kiválasztása, ahova a furat eltömődést tesszük
     PosTemp = []
     NumTemp = 0
@@ -521,7 +520,7 @@ for PictureNumber in range(num_of_pictures):
     
     #Close annoation file
     outF.close()
-
+    
     render(imageMaxSize)
     
     deleteEverything()
