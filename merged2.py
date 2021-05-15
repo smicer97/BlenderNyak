@@ -189,7 +189,7 @@ def assignMaterial(color, obj):
     mat = bpy.data.materials.get(color)
     obj.active_material = mat
         
-def createMaterails():
+def createMaterials():
     #Create green material
     materialHole = bpy.data.materials.new("Hole")
     materialHole.diffuse_color = (0,0,0,1)
@@ -491,7 +491,7 @@ for PictureNumber in range(num_of_pictures):
                 
     if (PictureNumber == 0):
         deleteCube()
-        createMaterails()
+        createMaterials()
         light()
         camera()
     surface()
